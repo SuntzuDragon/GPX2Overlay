@@ -24,7 +24,7 @@ def download_and_extract_ffmpeg():
     if ffmpeg_url:
         # Check if the ffmpeg directory already exists
         if os.path.exists(output_dir):
-            print(f'FFmpeg directory already exists: {output_dir}')
+            print(f'FFmpeg found: {output_dir}')
             if system == 'Darwin':
                 ffmpeg_executable = os.path.join(output_dir, 'ffmpeg')
                 if not os.path.isfile(ffmpeg_executable):
@@ -168,18 +168,36 @@ with ThreadPoolExecutor() as executor:
 
 print(f'Images saved in directory: {args.output_dir}')
 
-# Step 3: Create the video using ffmpeg
+# Step 3: Create the video using ffmpeg with NVENC
 image_pattern = os.path.join(args.output_dir, 'frame_%04d.png')
-ffmpeg_cmd = [
-    ffmpeg_executable,
-    '-y',  # Add the -y flag to overwrite the output file without asking
-    '-framerate', str(args.fps),
-    '-i', image_pattern,
-    '-c:v', 'qtrle',
-    '-pix_fmt', 'argb',
-    '-r', str(args.fps),
-    args.video_file
-]
+
+# Check for NVENC support
+nvenc_check_cmd = [ffmpeg_executable, '-v', 'error', '-encoders']
+nvenc_check_result = subprocess.run(nvenc_check_cmd, capture_output=True, text=True)
+if 'h264_nvenc' in nvenc_check_result.stdout:
+    print('NVENC is supported. Using NVENC for hardware acceleration.')
+    ffmpeg_cmd = [
+        ffmpeg_executable,
+        '-y',  # Add the -y flag to overwrite the output file without asking
+        '-framerate', str(args.fps),
+        '-i', image_pattern,
+        '-c:v', 'h264_nvenc',  # Use NVENC for H.264 encoding
+        '-pix_fmt', 'yuv420p',  # Use YUV 4:2:0 pixel format
+        '-r', str(args.fps),
+        args.video_file
+    ]
+else:
+    print('NVENC is not supported. Falling back to libx264 for software encoding.')
+    ffmpeg_cmd = [
+        ffmpeg_executable,
+        '-y',  # Add the -y flag to overwrite the output file without asking
+        '-framerate', str(args.fps),
+        '-i', image_pattern,
+        '-c:v', 'libx264',  # Use libx264 for H.264 encoding
+        '-pix_fmt', 'yuv420p',  # Use YUV 4:2:0 pixel format
+        '-r', str(args.fps),
+        args.video_file
+    ]
 
 print(f'Creating video {args.video_file}...')
 subprocess.run(ffmpeg_cmd, check=True)
