@@ -27,7 +27,7 @@ gpx2overlay is a Python script that generates a video overlay from GPX files. It
 2. Create a virtual environment and install dependencies:
    ```sh
    python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+   .\venv\Scripts\activate  # On Mac, use `source venv/bin/activate`
    pip install -r requirements.txt
    ```
 
