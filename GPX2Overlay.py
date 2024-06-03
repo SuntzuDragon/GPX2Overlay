@@ -7,9 +7,11 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description='Create video overlay from GPX file.')
+parser = argparse.ArgumentParser(
+    description='Create video overlay from GPX file.')
 parser.add_argument('gpx_file', type=str, help='Path to the GPX file')
-parser.add_argument('--output_dir', type=str, default='output_images', help='Directory to save the generated images')
+parser.add_argument('--output_dir', type=str, default='output_images',
+                    help='Directory to save the generated images')
 args = parser.parse_args()
 
 # Load and parse the GPX file
@@ -21,21 +23,27 @@ points = []
 for track in gpx.tracks:
     for segment in track.segments:
         for point in segment.points:
-            points.append((point.latitude, point.longitude, point.time, point.elevation))
+            points.append((point.latitude, point.longitude,
+                          point.time, point.elevation))
 
 # Convert to DataFrame
-points_df = pd.DataFrame(points, columns=['latitude', 'longitude', 'time', 'elevation'])
+points_df = pd.DataFrame(
+    points, columns=['latitude', 'longitude', 'time', 'elevation'])
 
 # Calculate normalization parameters
 lat_min, lat_max = points_df['latitude'].min(), points_df['latitude'].max()
 lon_min, lon_max = points_df['longitude'].min(), points_df['longitude'].max()
 
+
 def normalize(value, min_value, max_value):
     return (value - min_value) / (max_value - min_value)
 
+
 # Normalize coordinates
-points_df['normalized_latitude'] = points_df['latitude'].apply(lambda x: normalize(x, lat_min, lat_max))
-points_df['normalized_longitude'] = points_df['longitude'].apply(lambda x: normalize(x, lon_min, lon_max))
+points_df['normalized_latitude'] = points_df['latitude'].apply(
+    lambda x: normalize(x, lat_min, lat_max))
+points_df['normalized_longitude'] = points_df['longitude'].apply(
+    lambda x: normalize(x, lon_min, lon_max))
 
 # Create output directory if it doesn't exist
 if not os.path.exists(args.output_dir):
@@ -50,12 +58,15 @@ route_draw = ImageDraw.Draw(route_image)
 for i in range(1, len(points_df)):
     route_draw.line(
         [
-            (points_df['normalized_longitude'].iloc[i-1] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
-            (points_df['normalized_longitude'].iloc[i] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
+            (points_df['normalized_longitude'].iloc[i-1] * img_size[0],
+             img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
+            (points_df['normalized_longitude'].iloc[i] * img_size[0],
+             img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
         ],
         fill="white",
         width=3
     )
+
 
 def generate_image(index, row, base_image):
     img = base_image.copy()
@@ -68,6 +79,7 @@ def generate_image(index, row, base_image):
 
     # Save the image
     img.save(os.path.join(args.output_dir, f'frame_{index+1:04d}.png'))
+
 
 # Multithreading image generation
 with ThreadPoolExecutor() as executor:
