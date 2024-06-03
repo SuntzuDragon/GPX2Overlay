@@ -3,6 +3,7 @@ import gpxpy
 import pandas as pd
 import os
 from PIL import Image, ImageDraw
+from tqdm import tqdm
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Create video overlay from GPX file.')
@@ -42,21 +43,23 @@ if not os.path.exists(args.output_dir):
 # Image size
 img_size = (800, 800)
 
-# Generate and save transparent images
-for index, row in points_df.iterrows():
-    img = Image.new('RGBA', img_size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
+# Draw the overall route once and save to use in all frames
+route_image = Image.new('RGBA', img_size, (0, 0, 0, 0))
+route_draw = ImageDraw.Draw(route_image)
+for i in range(1, len(points_df)):
+    route_draw.line(
+        [
+            (points_df['normalized_longitude'].iloc[i-1] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
+            (points_df['normalized_longitude'].iloc[i] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
+        ],
+        fill="white",
+        width=3
+    )
 
-    # Draw the overall route
-    for i in range(1, len(points_df)):
-        draw.line(
-            [
-                (points_df['normalized_longitude'].iloc[i-1] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
-                (points_df['normalized_longitude'].iloc[i] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
-            ],
-            fill="white",
-            width=3
-        )
+# Generate and save transparent images with progress bar
+for index, row in tqdm(points_df.iterrows(), total=points_df.shape[0], desc="Generating images"):
+    img = route_image.copy()
+    draw = ImageDraw.Draw(img)
 
     # Draw the current position
     x = row['normalized_longitude'] * img_size[0]
