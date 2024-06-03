@@ -11,6 +11,7 @@ import platform
 import zipfile
 import shutil
 
+
 def download_and_extract_ffmpeg():
     system = platform.system()
     ffmpeg_url = ''
@@ -33,11 +34,13 @@ def download_and_extract_ffmpeg():
                             ffmpeg_executable = os.path.join(root, 'ffmpeg')
                             break
             elif system == 'Windows':
-                ffmpeg_executable = os.path.join(output_dir, 'bin', 'ffmpeg.exe')
+                ffmpeg_executable = os.path.join(
+                    output_dir, 'bin', 'ffmpeg.exe')
                 if not os.path.isfile(ffmpeg_executable):
                     for root, dirs, files in os.walk(output_dir):
                         if 'ffmpeg.exe' in files:
-                            ffmpeg_executable = os.path.join(root, 'ffmpeg.exe')
+                            ffmpeg_executable = os.path.join(
+                                root, 'ffmpeg.exe')
                             break
             return ffmpeg_executable
 
@@ -69,11 +72,13 @@ def download_and_extract_ffmpeg():
                 os.chmod(ffmpeg_executable, 0o755)
 
             elif system == 'Windows':
-                ffmpeg_executable = os.path.join(output_dir, 'bin', 'ffmpeg.exe')
+                ffmpeg_executable = os.path.join(
+                    output_dir, 'bin', 'ffmpeg.exe')
                 if not os.path.isfile(ffmpeg_executable):
                     for root, dirs, files in os.walk(output_dir):
                         if 'ffmpeg.exe' in files:
-                            ffmpeg_executable = os.path.join(root, 'ffmpeg.exe')
+                            ffmpeg_executable = os.path.join(
+                                root, 'ffmpeg.exe')
                             break
 
             print(f'FFmpeg is ready to use: {ffmpeg_executable}')
@@ -85,19 +90,25 @@ def download_and_extract_ffmpeg():
         print('Unsupported operating system for automated FFmpeg download.')
         return None
 
+
 # Check for FFmpeg availability and download if necessary
 ffmpeg_executable = shutil.which('ffmpeg')
 if not ffmpeg_executable:
     ffmpeg_executable = download_and_extract_ffmpeg()
     if not ffmpeg_executable:
-        raise EnvironmentError('FFmpeg is required but could not be downloaded or found.')
+        raise EnvironmentError(
+            'FFmpeg is required but could not be downloaded or found.')
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description='Create video overlay from GPX file.')
+parser = argparse.ArgumentParser(
+    description='Create video overlay from GPX file.')
 parser.add_argument('gpx_file', type=str, help='Path to the GPX file')
-parser.add_argument('--output_dir', type=str, default='output_images', help='Directory to save the generated images')
-parser.add_argument('--fps', type=int, default=30, help='Frames per second for the video')
-parser.add_argument('--video_file', type=str, default='output_video.mov', help='Output video file name')
+parser.add_argument('--output_dir', type=str, default='output_images',
+                    help='Directory to save the generated images')
+parser.add_argument('--fps', type=int, default=30,
+                    help='Frames per second for the video')
+parser.add_argument('--video_file', type=str,
+                    default='output_video.mov', help='Output video file name')
 args = parser.parse_args()
 
 # Load and parse the GPX file
@@ -109,21 +120,27 @@ points = []
 for track in gpx.tracks:
     for segment in track.segments:
         for point in segment.points:
-            points.append((point.latitude, point.longitude, point.time, point.elevation))
+            points.append((point.latitude, point.longitude,
+                          point.time, point.elevation))
 
 # Convert to DataFrame
-points_df = pd.DataFrame(points, columns=['latitude', 'longitude', 'time', 'elevation'])
+points_df = pd.DataFrame(
+    points, columns=['latitude', 'longitude', 'time', 'elevation'])
 
 # Calculate normalization parameters
 lat_min, lat_max = points_df['latitude'].min(), points_df['latitude'].max()
 lon_min, lon_max = points_df['longitude'].min(), points_df['longitude'].max()
 
+
 def normalize(value, min_value, max_value):
     return (value - min_value) / (max_value - min_value)
 
+
 # Normalize coordinates
-points_df['normalized_latitude'] = points_df['latitude'].apply(lambda x: normalize(x, lat_min, lat_max))
-points_df['normalized_longitude'] = points_df['longitude'].apply(lambda x: normalize(x, lon_min, lon_max))
+points_df['normalized_latitude'] = points_df['latitude'].apply(
+    lambda x: normalize(x, lat_min, lat_max))
+points_df['normalized_longitude'] = points_df['longitude'].apply(
+    lambda x: normalize(x, lon_min, lon_max))
 
 # Create output directory if it doesn't exist
 if not os.path.exists(args.output_dir):
@@ -138,12 +155,15 @@ route_draw = ImageDraw.Draw(route_image)
 for i in range(1, len(points_df)):
     route_draw.line(
         [
-            (points_df['normalized_longitude'].iloc[i-1] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
-            (points_df['normalized_longitude'].iloc[i] * img_size[0], img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
+            (points_df['normalized_longitude'].iloc[i-1] * img_size[0],
+             img_size[1] - points_df['normalized_latitude'].iloc[i-1] * img_size[1]),
+            (points_df['normalized_longitude'].iloc[i] * img_size[0],
+             img_size[1] - points_df['normalized_latitude'].iloc[i] * img_size[1])
         ],
         fill="white",
         width=3
     )
+
 
 def generate_image(index, row, base_image):
     img = base_image.copy()
@@ -156,6 +176,7 @@ def generate_image(index, row, base_image):
 
     # Save the image
     img.save(os.path.join(args.output_dir, f'frame_{index+1:04d}.png'))
+
 
 # Multithreading image generation
 with ThreadPoolExecutor() as executor:
@@ -173,7 +194,8 @@ image_pattern = os.path.join(args.output_dir, 'frame_%04d.png')
 
 # Check for NVENC support
 nvenc_check_cmd = [ffmpeg_executable, '-v', 'error', '-encoders']
-nvenc_check_result = subprocess.run(nvenc_check_cmd, capture_output=True, text=True)
+nvenc_check_result = subprocess.run(
+    nvenc_check_cmd, capture_output=True, text=True)
 if 'h264_nvenc' in nvenc_check_result.stdout:
     print('NVENC is supported. Using NVENC for hardware acceleration.')
     ffmpeg_cmd = [
