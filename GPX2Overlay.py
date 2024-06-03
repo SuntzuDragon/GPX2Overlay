@@ -57,7 +57,7 @@ for i in range(1, len(points_df)):
         width=3
     )
 
-def generate_image(index, row, output_dir, base_image):
+def generate_image(index, row, base_image):
     img = base_image.copy()
     draw = ImageDraw.Draw(img)
 
@@ -67,12 +67,12 @@ def generate_image(index, row, output_dir, base_image):
     draw.ellipse([x-5, y-5, x+5, y+5], fill="orange")
 
     # Save the image
-    img.save(os.path.join(output_dir, f'frame_{index+1:04d}.png'))
+    img.save(os.path.join(args.output_dir, f'frame_{index+1:04d}.png'))
 
 # Multithreading image generation
 with ThreadPoolExecutor() as executor:
     futures = [
-        executor.submit(generate_image, index, row, args.output_dir, route_image)
+        executor.submit(generate_image, index, row, route_image)
         for index, row in points_df.iterrows()
     ]
     for future in tqdm(as_completed(futures), total=len(futures), desc="Generating images"):
