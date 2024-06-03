@@ -1,7 +1,7 @@
 
-# GPX2Overlay
+# gpx2Overlay
 
-GPX2Overlay is a Python script that generates a video overlay from GPX files. It creates a series of transparent images with an overlay of the GPS route and a dot indicating the current position, and then combines them into a video file.
+gpx2Overlay is a Python script that generates a video overlay from GPX files. It creates a series of transparent images with an overlay of the GPS route and a dot indicating the current position, and then combines them into a video file.
 
 ## Features
 
@@ -20,8 +20,8 @@ GPX2Overlay is a Python script that generates a video overlay from GPX files. It
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/GPX2Overlay.git
-   cd GPX2Overlay
+   git clone https://github.com/yourusername/gpx2Overlay.git
+   cd gpx2Overlay
    ```
 
 2. Create a virtual environment and install dependencies:
@@ -37,7 +37,7 @@ GPX2Overlay is a Python script that generates a video overlay from GPX files. It
 
 2. Run the script:
    ```sh
-   python GPX2Overlay.py path_to_your_gpx_file.gpx --output_dir output_images --fps 30 --video_file output_video.mov
+   python gpx2Overlay.py path_to_your_gpx_file.gpx --output_dir output_images --fps 30 --video_file output_video.mov
    ```
 
    - `path_to_your_gpx_file.gpx`: Path to your GPX file.
@@ -48,7 +48,7 @@ GPX2Overlay is a Python script that generates a video overlay from GPX files. It
 ## Example
 
 ```sh
-python GPX2Overlay.py ./New_shoes_.gpx --output_dir ./output_images --fps 30 --video_file output_video.mov
+python gpx2Overlay.py ./New_shoes_.gpx --output_dir ./output_images --fps 30 --video_file output_video.mov
 ```
 
 ## How It Works
