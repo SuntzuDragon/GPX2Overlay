@@ -28,15 +28,15 @@ def load_gpx(gpx_file):
                               point.time, point.elevation))
 
     points_df = pd.DataFrame(
-        points, columns=['latitude', 'longitude', 'time', 'elevation'])
+        points, columns=['lat', 'lon', 'time', 'elev'])
 
-    lat_min, lat_max = points_df['latitude'].min(), points_df['latitude'].max()
-    lon_min, lon_max = points_df['longitude'].min(
-    ), points_df['longitude'].max()
+    lat_min, lat_max = points_df['lat'].min(), points_df['lat'].max()
+    lon_min, lon_max = points_df['lon'].min(
+    ), points_df['lon'].max()
 
-    points_df['normalized_latitude'] = points_df['latitude'].apply(
+    points_df['norm_lat'] = points_df['lat'].apply(
         lambda x: normalize(x, lat_min, lat_max))
-    points_df['normalized_longitude'] = points_df['longitude'].apply(
+    points_df['norm_lon'] = points_df['lon'].apply(
         lambda x: normalize(x, lon_min, lon_max))
 
     return points_df
