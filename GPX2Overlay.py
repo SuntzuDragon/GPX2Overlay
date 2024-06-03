@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from PIL import Image, ImageDraw
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Create video overlay from GPX file.')
@@ -56,9 +57,8 @@ for i in range(1, len(points_df)):
         width=3
     )
 
-# Generate and save transparent images with progress bar
-for index, row in tqdm(points_df.iterrows(), total=points_df.shape[0], desc="Generating images"):
-    img = route_image.copy()
+def generate_image(index, row, output_dir, base_image):
+    img = base_image.copy()
     draw = ImageDraw.Draw(img)
 
     # Draw the current position
@@ -67,6 +67,15 @@ for index, row in tqdm(points_df.iterrows(), total=points_df.shape[0], desc="Gen
     draw.ellipse([x-5, y-5, x+5, y+5], fill="orange")
 
     # Save the image
-    img.save(os.path.join(args.output_dir, f'frame_{index+1:04d}.png'))
+    img.save(os.path.join(output_dir, f'frame_{index+1:04d}.png'))
+
+# Multithreading image generation
+with ThreadPoolExecutor() as executor:
+    futures = [
+        executor.submit(generate_image, index, row, args.output_dir, route_image)
+        for index, row in points_df.iterrows()
+    ]
+    for future in tqdm(as_completed(futures), total=len(futures), desc="Generating images"):
+        future.result()
 
 print(f'Images saved in directory: {args.output_dir}')
