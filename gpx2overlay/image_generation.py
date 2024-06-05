@@ -4,20 +4,7 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-def generate_image(index, row, base_image, output_dir, img_size):
-    img = base_image.copy()
-    draw = ImageDraw.Draw(img)
-
-    x = row['norm_lon'] * img_size[0]
-    y = img_size[1] - row['norm_lat'] * img_size[1]
-    draw.ellipse([x-5, y-5, x+5, y+5], fill="orange")
-
-    img.save(os.path.join(output_dir, f'frame_{index+1:04d}.png'))
-
-
-def create_images(points_df, output_dir, img_size):
-    os.makedirs(output_dir, exist_ok=True)
-
+def generate_route_image(points_df, img_size):
     route_image = Image.new('RGBA', img_size, (0, 0, 0, 0))
     route_draw = ImageDraw.Draw(route_image)
 
@@ -34,9 +21,28 @@ def create_images(points_df, output_dir, img_size):
             width=3
         )
 
+    return route_image
+
+
+def generate_frame(index, row, base_image, output_dir, img_size):
+    img = base_image.copy()
+    draw = ImageDraw.Draw(img)
+
+    x = row['norm_lon'] * img_size[0]
+    y = img_size[1] - row['norm_lat'] * img_size[1]
+    draw.ellipse([x-5, y-5, x+5, y+5], fill="orange")
+
+    img.save(os.path.join(output_dir, f'frame_{index+1:04d}.png'))
+
+
+def create_frames(points_df, output_dir, img_size):
+    os.makedirs(output_dir, exist_ok=True)
+
+    route_image = generate_route_image(points_df, img_size)
+
     with ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(generate_image, index, row,
+            executor.submit(generate_frame, index, row,
                             route_image, output_dir, img_size)
             for index, row in points_df.iterrows()
         ]
