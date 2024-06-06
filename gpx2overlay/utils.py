@@ -34,10 +34,12 @@ def load_gpx(gpx_file):
     lon_min, lon_max = points_df['lon'].min(
     ), points_df['lon'].max()
 
+    max_range = max(lat_max - lat_min, lon_max - lon_min)
+
     points_df['norm_lat'] = points_df['lat'].apply(
-        lambda x: normalize(x, lat_min, lat_max))
+        lambda x: normalize(x, lat_min, lat_min + max_range))
     points_df['norm_lon'] = points_df['lon'].apply(
-        lambda x: normalize(x, lon_min, lon_max))
+        lambda x: normalize(x, lon_min, lon_min + max_range))
 
     return points_df
 

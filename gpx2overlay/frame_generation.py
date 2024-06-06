@@ -51,7 +51,7 @@ def generate_frame(index, row, base_image, output_dir, img_size, point_rad):
 def create_frames(points_df, output_dir, img_size):
     os.makedirs(output_dir, exist_ok=True)
 
-    route_image = generate_route_image(points_df, img_size, "blue", 5)
+    route_image = generate_route_image(points_df, img_size, "white", 5)
 
     with ThreadPoolExecutor() as executor:
         futures = [
