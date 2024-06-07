@@ -163,5 +163,6 @@ cython_debug/
 
 # Project specific
 /output_images
-/output_video.mov
 /ffmpeg
+*.mov
+*.mp4
