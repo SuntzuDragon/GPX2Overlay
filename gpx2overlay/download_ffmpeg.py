@@ -2,6 +2,7 @@ import os
 import platform
 import requests
 import zipfile
+from tqdm import tqdm
 
 
 def download_and_extract_ffmpeg():
@@ -44,9 +45,18 @@ def download_ffmpeg(url, output_file):
     print(f'Downloading FFmpeg from {url}...')
     response = requests.get(url, stream=True)
     response.raise_for_status()  # Raise an HTTPError for bad responses
-    with open(output_file, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 8192  # 8 Kilobytes
+    with open(output_file, 'wb') as f, tqdm(
+        desc=output_file,
+        total=total_size,
+        unit='iB',
+        unit_scale=True,
+        unit_divisor=1024,
+    ) as bar:
+        for chunk in response.iter_content(chunk_size=block_size):
             f.write(chunk)
+            bar.update(len(chunk))
     print('Download completed.')
 
 
