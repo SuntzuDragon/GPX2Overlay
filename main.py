@@ -14,10 +14,10 @@ def main():
                 'FFmpeg is required but could not be downloaded or found.')
 
     points_df = load_gpx(args.gpx_file)
-    create_frames(points_df, args.output_dir, (800, 800))
-
-    image_pattern = os.path.join(args.output_dir, 'frame_%04d.png')
-    create_video(ffmpeg_executable, image_pattern, args.fps, args.video_file)
+    
+    image_pattern = 'frame_%04d.png'
+    create_frames(points_df, args.output_dir, image_pattern, (800, 800))
+    create_video(ffmpeg_executable, args.output_dir, image_pattern, args.fps, args.video_file)
 
 
 if __name__ == "__main__":

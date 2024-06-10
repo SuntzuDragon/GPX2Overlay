@@ -1,6 +1,8 @@
+import os
 import subprocess
 
-def create_video(ffmpeg_executable, image_pattern, fps, video_file):
+def create_video(ffmpeg_executable, output_dir, image_pattern, fps, video_file):
+    input_frames = os.path.join(output_dir, image_pattern)
     nvenc_check_cmd = [ffmpeg_executable, '-v', 'error', '-encoders']
     nvenc_check_result = subprocess.run(nvenc_check_cmd, capture_output=True, text=True)
     encoder = 'h264_nvenc' if 'h264_nvenc' in nvenc_check_result.stdout else 'libx264'
@@ -14,7 +16,7 @@ def create_video(ffmpeg_executable, image_pattern, fps, video_file):
         ffmpeg_executable,
         '-y',
         '-framerate', str(fps),
-        '-i', image_pattern,
+        '-i', input_frames,
         '-c:v', encoder,
         '-pix_fmt', 'yuv420p',
         '-r', str(fps),

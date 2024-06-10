@@ -36,7 +36,7 @@ def generate_route_image(points_df, img_size, fill_color, line_width):
     return route_image
 
 
-def generate_frame(index, row, base_image, output_dir, img_size, point_rad):
+def generate_frame(index, row, base_image, save_loc, img_size, point_rad):
     img = base_image.copy()
     draw = ImageDraw.Draw(img)
 
@@ -45,18 +45,19 @@ def generate_frame(index, row, base_image, output_dir, img_size, point_rad):
     draw.ellipse([x-point_rad, y-point_rad, x +
                  point_rad, y+point_rad], fill="orange")
 
-    img.save(os.path.join(output_dir, f'frame_{index+1:04d}.png'))
+    img.save(save_loc % index)
 
 
-def create_frames(points_df, output_dir, img_size):
+def create_frames(points_df, output_dir, image_pattern, img_size):
     os.makedirs(output_dir, exist_ok=True)
 
     route_image = generate_route_image(points_df, img_size, "white", 5)
+    save_loc = os.path.join(output_dir, image_pattern)
 
     with ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(generate_frame, index, row,
-                            route_image, output_dir, img_size, 5)
+                            route_image, save_loc, img_size, 5)
             for index, row in points_df.iterrows()
         ]
         for future in tqdm(as_completed(futures), total=len(futures), desc="Generating images"):
